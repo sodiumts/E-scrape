@@ -6,7 +6,7 @@ from requests.sessions import session
 from datetime import date, timedelta, datetime
 import json
 import telegram_send
-f = open("details.json")
+f = open("detailsc.json")
 payloads = json.load(f)
 
 payload1 = payloads["payload1"]
