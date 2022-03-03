@@ -6,15 +6,16 @@ from requests.sessions import session
 from datetime import date, timedelta, datetime
 import json
 import telegram_send
-f = open("detailsc.json")
+f = open("details.json")
 payloads = json.load(f)
+# tagSpan = bs4.span
 
 payload1 = payloads["payload1"]
 payload2 = payloads["payload2"]
-days = ["pirmdiena","otrdiena","trešdiena","ceturtdiena","piektdiena"]
+days = ["pirmdiena","otrdiena","trešdiena","ceturtdiena","piektdiena","(šodien)","(rīt)","(parīt)","(vakar)"]
 time_table = payloads["timetable"]
 today = date.today()
-weeks = 1
+weeks = 2
 # date_1 = today + timedelta(days=7*x)
 # finalDate = date_1.strftime("%d.%m.%y")
 # print(finalDate)
@@ -57,9 +58,9 @@ with requests.Session() as s:
         print(week)
         date_1 = today + timedelta(days=7*week)
         finalDate = date_1.strftime("%d.%m.%Y.")
-        page = s.get(f"https://my.e-klase.lv/Family/Diary?Date=06.12.2021.")#{finalDate}
-        print(page.url)
-        #print(f"https://my.e-klase.lv/Family/Diary?Date={finalDate}")
+        page = s.get(f"https://my.e-klase.lv/Family/Diary?Date={finalDate}")#{finalDate}
+        # print(page.url)
+        print(f"https://my.e-klase.lv/Family/Diary?Date={finalDate}")
         #print(page.url)
         """Finding the tests by using the class 'subject--scheduledTest'
         to locate the td elements that contain a test. 
@@ -91,19 +92,29 @@ with requests.Session() as s:
             for home in Homework:
                 #print(home)
                     foundHome = home.findChildren("p")
+                    #printType(foundHome)
                     try:
-                        foundHome[0].text
+                        #foundHome[0].text
                         for element in foundHome:
                             lessonNumberFound = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"number"})[0].text.strip()
                             foundTestDate = element.find_parent("td").find_parent("table",{"class":"lessons-table"}).find_previous_sibling("h2").get_text().strip()
-                            #print(foundTestDate)
+                            lessonName = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"title"})[0].text.strip()
+
+                            # try:
+                            #     lessonName.trim()
+                            # except:
+                            #     continue
+
+                            printType(lessonName)
                             taskDateTimeArray = dateTimeFormat(foundTestDate,lessonNumberFound)
-                            printType(element)
-                            sendStr = f"<b><i>{element.text}</i></b>"+"\n"+str(taskDateTimeArray[0].strftime("%d.%m.%Y.")+"\n"+taskDateTimeArray[0].strftime("%H:%M")+"-"+ str(taskDateTimeArray[1].strftime("%H:%M")))
-                            print(sendStr)
+                            #printType(element)
+                            printType(taskDateTimeArray)
+                            sendStr = str(lessonName)+"\n"+f"<b><i>MD: {element.text}</i></b>"+"\n"+str(taskDateTimeArray[0].strftime("%d.%m.%Y.")+"\n"+taskDateTimeArray[0].strftime("%H:%M")+"-"+ str(taskDateTimeArray[1].strftime("%H:%M")))
+                            #print(sendStr)
                             telegram_send.send(messages=[sendStr], parse_mode='HTML')#messages=[sendStr]
                         #printType(foundHome)
                     except Exception as e:
+                        print(e)
                         continue
 
         else:
