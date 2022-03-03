@@ -1,5 +1,5 @@
 # E-scrape
-##Scraper for the popular school task management website.
+Scraper for the popular school task management website.
 --------------------------
 Currently supports:
  •Test scraping 
