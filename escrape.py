@@ -12,7 +12,7 @@ payloads = json.load(f)
 
 payload1 = payloads["payload1"]
 payload2 = payloads["payload2"]
-days = ["pirmdiena","otrdiena","trešdiena","ceturtdiena","piektdiena","(šodien)","(rīt)","(parīt)","(vakar)"]
+days = ["pirmdiena","otrdiena","trešdiena","ceturtdiena","piektdiena","(šodien)","(rīt)","(parīt)","(vakar)","(aizvakar)"]
 time_table = payloads["timetable"]
 today = date.today()
 weeks = 2
@@ -78,14 +78,14 @@ with requests.Session() as s:
                     foundTestTime = i.find_parent("td").find_previous_sibling("td").findChildren("span",{"class":"number"})[0].get_text().strip()
                     #print(lookupTime(foundTestTime))
                     testDateTimeArray=dateTimeFormat(foundTestDate,foundTestTime)
-                    sendStr = foundTest+"\n"+str(testDateTimeArray[0].strftime("%d.%m.%Y.")+"\n"+testDateTimeArray[0].strftime("%H:%M")+"-"+ str(testDateTimeArray[1].strftime("%H:%M")))
+                    sendStr = str(foundTest)+"\n"+f"<b>{i.text}</b>"+"\n"+str(testDateTimeArray[0].strftime("%d.%m.%Y.")+"\n"+testDateTimeArray[0].strftime("%H:%M")+"-"+ str(testDateTimeArray[1].strftime("%H:%M")))
                     #print(sendStr)
                     date_1.strftime("%d.%m.%Y.")
-                    #telegram_send.send(messages=[sendStr])
+                    telegram_send.send(messages=[sendStr], parse_mode="HTML")
                     #test_date=datetime.strptime(foundTestDate)
                     #printType(datetime_test_object)
                 except Exception as e:
-                    #print(e)
+                    print(e)
                     break
             Homework = page_contents.find_all(class_="hometask")
             #printType(Homework)
