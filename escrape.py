@@ -1,12 +1,15 @@
 from typing import TypedDict
 import bs4
+from numpy import empty
 import requests
 from requests.api import request
 from requests.sessions import session
 from datetime import date, timedelta, datetime
 import json
 import telegram_send
-f = open("details.json")
+import mysql.connector
+
+f = open("detailsc.json")
 payloads = json.load(f)
 # tagSpan = bs4.span
 
@@ -45,7 +48,10 @@ def dateTimeFormat(x,y):
 
 
 
-
+if payloads["payload1"]["UserName"] == "":
+    input("Input your E-klase username")
+else:
+    print("ok")
 
 #print(time_table)
 with requests.Session() as s:
