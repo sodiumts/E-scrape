@@ -17,14 +17,12 @@ DATEVARIABLE = "14.12.21. trešdiena"
 def dateTimeFormat(x,y):
     for day in days:
         x = x.replace(day, "").strip()
+    
+    times1,times2 = time_table[y][0][0],time_table[y][1][0]
 
-    times1 = time_table[y][0][0]
-    times2 = time_table[y][1][0]
-    z = f"{x}.{times1}"
-    w = f"{x}.{times2}"
-    z = datetime.strptime(z, "%d.%m.%y..%H:%M")
-    w = datetime.strptime(w, "%d.%m.%y..%H:%M")
-    return [z,w]
+    start,end = f"{x}.{times1}",f"{x}.{times2}"
+    start,end = datetime.strptime(start, "%d.%m.%y..%H:%M"),datetime.strptime(end, "%d.%m.%y..%H:%M")
+    return start,end
 array = dateTimeFormat(DATEVARIABLE,foundTestTime)
-print(array[0])
+print(array[1])
 #print(dateTimeFormat(DATEVARIABLE,foundTestTime))
