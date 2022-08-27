@@ -1,3 +1,4 @@
+#VEL VIENA ATZIME NAKAMGAD
 from typing import TypedDict
 import bs4
 from numpy import empty
@@ -49,7 +50,8 @@ def dateTimeFormat(x,y):
 
 
 if payloads["payload1"]["UserName"] == "":
-    input("Input your E-klase username")
+    userName = input("Input your E-klase username")
+        
 else:
     print("ok")
 
