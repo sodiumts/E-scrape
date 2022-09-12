@@ -61,4 +61,18 @@ def scraper(payloads, weeks):
                 print(" ".join(lessonName.split()))
                 print(f"{dateTimeFormat(foundTaskDate,lessonNumberFound)[0]}-{dateTimeFormat(foundTaskDate,lessonNumberFound)[1]}")
                 print(element.text)
-scraper(payloads,5)
+def checkLoginData(username,password):
+    payload1 = {
+        "fake_pass":"",
+        "UserName":username,
+        "Password":password
+    }
+    with requests.Session() as s:
+        r = s.post("https://my.e-klase.lv/?v=15", data=payload1, allow_redirects=True)
+
+        if r.url == "https://my.e-klase.lv/?v=15":
+            return 0x1 #invalid credentials
+        elif r.status_code != 200:
+            return 0x21
+        #valid credentials
+        return 0x200
