@@ -2,6 +2,7 @@ import json
 import requests
 from datetime import date, datetime,timedelta
 import bs4
+import random
 with open("details.json","r") as f:
     payloads = json.load(f)
 
@@ -19,6 +20,7 @@ def dateTimeFormat(x,y):
     return start,end
 
 def scraper(payloads, weeks):
+
     with requests.Session() as s:
         #send post with credencials for login
         r = s.post("https://my.e-klase.lv/?v=15", data=payloads["payload1"], allow_redirects=True)
@@ -46,7 +48,7 @@ def scraper(payloads, weeks):
         #     page = s.get(f"https://my.e-klase.lv/Family/Diary?Date={dateForLink}")
 
 
-        page = s.get("https://my.e-klase.lv/Family/Diary?Date=22.05.2022.")
+        page = s.get("https://my.e-klase.lv/Family/Diary?Date=18.09.2022.")
         # print(r.status_code)
 
         page = bs4.BeautifulSoup(page.content,"html.parser")
@@ -54,10 +56,13 @@ def scraper(payloads, weeks):
         for entry in homework_entries:
             foundPelement = entry.findChildren("p")
             for element in foundPelement:
+                customIdSource = element.find_parent('span')["title"]
                 lessonNumberFound = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"number"})[0].text.strip()
                 foundTaskDate = element.find_parent("td").find_parent("table",{"class":"lessons-table"}).find_previous_sibling("h2").get_text().strip()
                 lessonName = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"title"})[0].text.strip()
-
+                random.seed(a=customIdSource)
+                print(random.randint(-2147483647,2147483647))
+                
                 print(" ".join(lessonName.split()))
                 print(f"{dateTimeFormat(foundTaskDate,lessonNumberFound)[0]}-{dateTimeFormat(foundTaskDate,lessonNumberFound)[1]}")
                 print(element.text)
@@ -76,3 +81,4 @@ def checkLoginData(username,password):
             return 0x21
         #valid credentials
         return 0x200
+scraper(payloads=payloads, weeks=1)
