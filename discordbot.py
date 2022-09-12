@@ -1,10 +1,10 @@
-from dis import disco
-from re import I, S
-from tkinter.ttk import Style
 import discord
 from discord import ui, app_commands
 import functions.scrapefunc
 import json
+
+
+
 class MyClient(discord.Client):
     def __init__(self,intents):
         super().__init__(intents=intents)
@@ -52,8 +52,6 @@ class SetupModal(ui.Modal,title = "Setup"):
             with open("details.json","w") as f:
                 f.write(json.dumps(data,indent=4))
 
-        
-
 
 class InitButton(discord.ui.View):
     def __init__(self):
@@ -68,10 +66,10 @@ class InitButton(discord.ui.View):
 intents = discord.Intents.default()
 intents.message_content = True
 
-
 client = MyClient(intents=intents)
-
+# context = app_commands.ContextMenu(client)
 tree = app_commands.CommandTree(client)
+
 
 @tree.command(name="modal",description="pull up a test modal")
 async def modal(interaction:discord.Interaction):
@@ -92,5 +90,15 @@ async def setupSeq(interaction:discord.Interaction):
 
 
 
+# @tree.command()
+# @app_commands.describe(credentials="Credentials to change/input")
+# async def credential(interaction:discord.Interaction,credentials:typing.Literal["Username","Password"],input_credentials:str):
+#     await interaction.response.send_message(f'Your choice{credentials} and {input_credentials}')
 
-client.run('MTAxNzM0MzY0NTcwNTMyNjY5NA.GG-Jd-.vAu6yBtv2VIksOslC9FZfCwpERjzauhupON0NU')
+
+
+
+
+
+
+client.run('')
