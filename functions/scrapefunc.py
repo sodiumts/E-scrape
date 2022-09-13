@@ -20,7 +20,7 @@ def dateTimeFormat(x,y):
     return start,end
 
 def scraper(payloads, weeks):
-
+    #Open a requests session for retrieving data 
     with requests.Session() as s:
         #send post with credencials for login
         r = s.post("https://my.e-klase.lv/?v=15", data=payloads["payload1"], allow_redirects=True)
@@ -47,25 +47,35 @@ def scraper(payloads, weeks):
         #     #laod the current weeks page
         #     page = s.get(f"https://my.e-klase.lv/Family/Diary?Date={dateForLink}")
 
-
+        #get the diary page contents of e-klase
         page = s.get("https://my.e-klase.lv/Family/Diary?Date=18.09.2022.")
         # print(r.status_code)
-
+        #parse the html page
         page = bs4.BeautifulSoup(page.content,"html.parser")
+        #find all elements with the class "hometask"
         homework_entries = page.find_all(class_="hometask")
+        #go through all homework entries
         for entry in homework_entries:
+            #find all <p> elements
             foundPelement = entry.findChildren("p")
+            #go through all found <p> elements
             for element in foundPelement:
+                #find the time and who added the assignment
                 customIdSource = element.find_parent('span')["title"]
+                #find the lesson number
                 lessonNumberFound = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"number"})[0].text.strip()
+                #find the task 
                 foundTaskDate = element.find_parent("td").find_parent("table",{"class":"lessons-table"}).find_previous_sibling("h2").get_text().strip()
+                #find the lesson name
                 lessonName = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"title"})[0].text.strip()
+                #generate a 32bit number as an identifier
                 random.seed(a=customIdSource)
                 print(random.randint(-2147483647,2147483647))
-                
+
                 print(" ".join(lessonName.split()))
                 print(f"{dateTimeFormat(foundTaskDate,lessonNumberFound)[0]}-{dateTimeFormat(foundTaskDate,lessonNumberFound)[1]}")
                 print(element.text)
+
 def checkLoginData(username,password):
     payload1 = {
         "fake_pass":"",
