@@ -3,6 +3,7 @@ import requests
 from datetime import date, datetime,timedelta
 import bs4
 import random
+# import datam
 with open("details.json","r") as f:
     payloads = json.load(f)
 
@@ -60,21 +61,27 @@ def scraper(payloads, weeks):
             foundPelement = entry.findChildren("p")
             #go through all found <p> elements
             for element in foundPelement:
+
                 #find the time and who added the assignment
                 customIdSource = element.find_parent('span')["title"]
+
                 #find the lesson number
                 lessonNumberFound = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"number"})[0].text.strip()
+               
                 #find the task 
                 foundTaskDate = element.find_parent("td").find_parent("table",{"class":"lessons-table"}).find_previous_sibling("h2").get_text().strip()
+                
                 #find the lesson name
                 lessonName = element.find_parent("td").find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"title"})[0].text.strip()
                 #generate a 32bit number as an identifier
-                random.seed(a=customIdSource)
+                unique_id=random.seed(a=customIdSource)
                 print(random.randint(-2147483647,2147483647))
 
                 print(" ".join(lessonName.split()))
                 print(f"{dateTimeFormat(foundTaskDate,lessonNumberFound)[0]}-{dateTimeFormat(foundTaskDate,lessonNumberFound)[1]}")
                 print(element.text)
+
+                # datam.insert_data(unique_id,lessonName,lessonNumberFound,)
 
 def checkLoginData(username,password):
     payload1 = {

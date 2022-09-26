@@ -1,14 +1,8 @@
 #VEL VIENA ATZIME NAKAMGAD
-from typing import TypedDict
 import bs4
-from numpy import empty
 import requests
-from requests.api import request
-from requests.sessions import session
 from datetime import date, timedelta, datetime
 import json
-import telegram_send
-import mysql.connector
 
 f = open("detailsc.json")
 payloads = json.load(f)
