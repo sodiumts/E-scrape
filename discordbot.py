@@ -56,7 +56,7 @@ class SetupModal(ui.Modal,title = "Setup"):
             #write the valid credentials to details.json
             with open("details.json", "r") as f:
                 data = json.loads(f.read())
-                data['payload1']['UserName'],data['payload1']['Password'] = str(self.userNameAnswer),str(self.userPassAnswer)
+                data['creds']['UserName'],data['creds']['Password'] = str(self.userNameAnswer),str(self.userPassAnswer)
             with open("details.json","w") as f:
                 f.write(json.dumps(data,indent=4))
 
