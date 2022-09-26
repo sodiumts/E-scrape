@@ -39,4 +39,3 @@ def insert_data(unique_id,lesson_name,number,task,):
             {unique_id},{lesson_name},{number},{task},"asd"
         )"""
         curr.execute(exec)
-
