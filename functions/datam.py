@@ -22,13 +22,13 @@ class DBManager:
                             less_name TEXT,
                             less_number INTEGER,
                             time TEXT,
-                            date TEXT,
+                            date DATE,
                             PRIMARY KEY(unique_id)
                         )
                         """
                         cur.execute(TestTable)
 
-    def insert_data(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:datetime.date) -> None:
+    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:datetime.date) -> None:
         with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             tup = (unique_id,lesson_name,number,task,times,date)
@@ -36,5 +36,15 @@ class DBManager:
             (unique_id,less_name,less_number,assignments,time,date)
             VALUES(
                 ?,?,?,?,?,?
+            )"""
+            curr.execute(exec,tup)
+    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:datetime.date) -> None:
+        with sql.connect("classes.db") as conn:
+            curr = conn.cursor()
+            tup = (unique_id,lesson_name,test_number,time,date)
+            exec = f""" INSERT INTO "Tests"
+            (unique_id,less_name,less_number,time,date)
+            VALUES(
+                ?,?,?,?,?
             )"""
             curr.execute(exec,tup)

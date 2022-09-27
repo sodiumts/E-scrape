@@ -1,4 +1,5 @@
 import json
+from urllib.parse import non_hierarchical
 import requests
 from datetime import date, datetime,timedelta
 import bs4
@@ -55,6 +56,9 @@ def scraper(creds, weeks):
         # print(r.status_code)
         #parse the html page
         page = bs4.BeautifulSoup(page.content,"html.parser")
+
+
+
         #find all elements with the class "hometask"
         homework_entries = page.find_all(class_="hometask")
         #go through all homework entries
@@ -84,8 +88,34 @@ def scraper(creds, weeks):
                 timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
                 taskDateConv = datetime.strptime(taskDate.strip(),"%d.%m.%y.")
                 # print(taskDateConv)
-                dataMan.insert_data(unique_id,lessonName,lessonNumberFound,mainTask,timeFormatted,taskDateConv)
-                
+                dataMan.insert_data_lessons(unique_id,lessonName,lessonNumberFound,mainTask,timeFormatted,taskDateConv)
+        
+
+        foundTest = page.find_all("span",{"class":"subject--scheduledTest"})
+        # print(foundTest)
+        for test in foundTest:
+            foundTestParent = test.find_parent("td")
+            if foundTestParent == None:
+                break
+            foundTestSubject = foundTestParent.find_previous_sibling("td").findChildren("span",{"class":"title"})[0].text.strip()
+            foundTestNumber = foundTestParent.find_previous_sibling("td").findChildren("span",{"class":"number"})[0].text.strip()
+            foundTestDate = foundTestParent.find_parent("table",{"class":"lessons-table"}).find_previous_sibling().text.strip()
+            for day in days:
+                    try:
+                        foundTestDate = foundTestDate.replace(day,"")
+                    except:
+                        continue
+            testDateConv = datetime.strptime(foundTestDate.strip(),"%d.%m.%y.")
+            unique_seed = random.seed(a=foundTestSubject+foundTestDate)
+            unique_id = random.randint(-2147483647,2147483647)
+            timeFormatted = times[foundTestNumber]
+            timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
+
+            dataMan.insert_data_test(unique_id,foundTestSubject,foundTestNumber,timeFormatted,testDateConv)
+            print(foundTestDate)
+            print(foundTestNumber)
+            print(foundTestSubject)
+        # print(foundTestSubject)
 
 
 def checkLoginData(username,password):
