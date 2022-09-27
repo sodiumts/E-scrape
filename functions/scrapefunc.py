@@ -3,11 +3,11 @@ import requests
 from datetime import date, datetime,timedelta
 import bs4
 import random
-import datam
+from datam import DBManager
 with open("details.json","r") as f:
     creds = json.load(f)
 
-dataMan = datam.DBManager()
+dataMan = DBManager()
 days = ["pirmdiena","otrdiena","trešdiena","ceturtdiena","piektdiena","(šodien)","(rīt)","(parīt)","(vakar)","(aizvakar)"]
 times = {"0.": ["07:35","08:15"],
         "1.": ["08:20","09:00"],
@@ -82,9 +82,9 @@ def scraper(creds, weeks):
 
                 timeFormatted = times[lessonNumberFound]
                 timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
-                taskDateConv = datetime.strptime(taskDate.strip(),"%d.%m.%y")
-                print(taskDateConv)
-                dataMan.insert_data(unique_id,lessonName,lessonNumberFound,mainTask,timeFormatted,taskDate.strip())
+                taskDateConv = datetime.strptime(taskDate.strip(),"%d.%m.%y.")
+                # print(taskDateConv)
+                dataMan.insert_data(unique_id,lessonName,lessonNumberFound,mainTask,timeFormatted,taskDateConv)
                 
 
 

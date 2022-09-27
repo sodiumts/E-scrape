@@ -16,7 +16,7 @@ class MyClient(discord.Client):
             await tree.sync() #sync the commands to the server
             self.synced = True
         print(f'Logged on as {self.user}!')
-
+        
 ##################################### TESTING CLASSES ####################################
 class testButton(discord.ui.View):
     def __init__(self):
