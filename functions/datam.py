@@ -28,6 +28,20 @@ class DBManager:
                         """
                         cur.execute(TestTable)
 
+                        DescTable = """ CREATE TABLE "Descriptions"(
+                            unique_id INTEGER,
+                            less_name TEXT,
+                            less_number INTEGER,
+                            less_desc TEXT,
+                            time TEXT,
+                            date DATE,
+                            PRIMARY KEY(unique_id)
+                        )
+                        """
+                        cur.execute(DescTable)
+
+
+    
     def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:datetime.date) -> None:
         with sql.connect("classes.db") as conn:
             curr = conn.cursor()
@@ -46,5 +60,15 @@ class DBManager:
             (unique_id,less_name,less_number,time,date)
             VALUES(
                 ?,?,?,?,?
+            )"""
+            curr.execute(exec,tup)
+    def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date) -> None:
+        with sql.connect("classes.db") as conn:
+            curr = conn.cursor()
+            tup = (unique_id,lesson_name,less_number,lesson_desc,time,date)
+            exec = f""" INSERT INTO "Tests"
+            (unique_id,less_name,less_number,less_desc,time,date)
+            VALUES(
+                ?,?,?,?,?,?
             )"""
             curr.execute(exec,tup)

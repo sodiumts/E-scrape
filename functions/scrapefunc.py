@@ -112,9 +112,13 @@ def scraper(creds, weeks):
             timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
 
             dataMan.insert_data_test(unique_id,foundTestSubject,foundTestNumber,timeFormatted,testDateConv)
-            print(foundTestDate)
-            print(foundTestNumber)
-            print(foundTestSubject)
+        
+
+        foundDesc = page.find_all("td",{"class":"subject"})
+        for desc in foundDesc:
+            foundDescNumber = desc.find_previous_sibling("td").findChildren("span",{"class":"number"}).text.strip()
+            foundDescTitle = desc.find_previous_sibling("td").findChildren("span",{"class":"title"}).text.strip()
+            foundDescContent = desc.text.strip
         # print(foundTestSubject)
 
 
