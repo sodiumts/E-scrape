@@ -116,9 +116,12 @@ def scraper(creds, weeks):
 
         foundDesc = page.find_all("td",{"class":"subject"})
         for desc in foundDesc:
-            foundDescNumber = desc.find_previous_sibling("td").findChildren("span",{"class":"number"}).text.strip()
-            foundDescTitle = desc.find_previous_sibling("td").findChildren("span",{"class":"title"}).text.strip()
-            foundDescContent = desc.text.strip
+            if desc.find_parent("tr").find_previous_sibling("tr") == None:
+                continue
+            print(desc)
+            # foundDescNumber = desc.find_previous_sibling("td").findChildren("span",{"class":"number"}).text.strip()
+            # foundDescTitle = desc.find_previous_sibling("td").findChildren("span",{"class":"title"}).text.strip()
+            # foundDescContent = desc.text.strip()
         # print(foundTestSubject)
 
 
