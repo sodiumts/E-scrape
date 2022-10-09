@@ -1,6 +1,6 @@
 import sqlite3 as sql
 from os.path import exists
-import datetime
+from datetime import date
 class DBManager:
     def __init__(self) -> None:
         if exists("classes.db") == False:
@@ -42,7 +42,7 @@ class DBManager:
 
 
     
-    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:datetime.date) -> None:
+    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:date) -> None:
         with sql.connect("classes.db") as conn:
             
             curr = conn.cursor()
@@ -56,8 +56,9 @@ class DBManager:
                     ?,?,?,?,?,?
                 )"""
                 curr.execute(exec,tup)
+                
             print("exists")
-    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:datetime.date) -> None:
+    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:date) -> None:
         with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Lessons WHERE unique_id = ?", (unique_id,))
@@ -72,7 +73,7 @@ class DBManager:
             curr.execute(exec,tup)
     # def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date) -> None:
     #     with sql.connect("classes.db") as conn:
-    #         curr = conn.cursor()
+        #         curr = conn.cursor()
     #         curr.execute("SELECT rowid FROM Lessons WHERE unique_id = ?", (unique_id,))
     #         data = curr.fetchone()
     #         if data==None:

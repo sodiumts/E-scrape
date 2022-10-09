@@ -8,5 +8,8 @@
         "TenantId": "IDACC-ORG-20080928-165572FB",
         "pf_id": 2825925,
         "RedirectUrl": "/NavigateHome"
+    },
+    "discordID":{
+        "channelId":""
     }
 }

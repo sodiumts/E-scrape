@@ -2,7 +2,7 @@ import discord
 from discord import ui, app_commands
 import functions.scrapefunc
 import json
-
+import functions.datam
 
 #initiate the discord client class
 class MyClient(discord.Client):
@@ -16,12 +16,12 @@ class MyClient(discord.Client):
             await tree.sync() #sync the commands to the server
             self.synced = True
         print(f'Logged on as {self.user}!')
-        
+
 ##################################### TESTING CLASSES ####################################
 class testButton(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-    @discord.ui.button(label="testing",style=discord.ButtonStyle.danger, custom_id="test")
+    @discord.ui.button(label="testing",style=discord.ButtonStyle.danger)
     async def testing(self,interaction:discord.Interaction, button:discord.ui.Button):
         await interaction.response.send_message("deez",ephemeral=True)
 
@@ -38,6 +38,7 @@ class SetupModal(ui.Modal,title = "Setup"):
     #define the 2 text inputs
     userNameAnswer = ui.TextInput(label="e-klase username",style=discord.TextStyle.short, placeholder="e-klases username",required=True)
     userPassAnswer = ui.TextInput(label="e-klase password",style=discord.TextStyle.short, placeholder="e-klases password",required=True)
+    
     async def on_submit(self, interaction: discord.Interaction):
         #send the input data to scrapefunc.py to verify if its valid
         checkResponse = functions.scrapefunc.checkLoginData(self.userNameAnswer, self.userPassAnswer)
@@ -65,12 +66,11 @@ class InitButton(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=30)
     #button definition
-    @discord.ui.button(label="Start", style=discord.ButtonStyle.blurple, custom_id="start")
+    @discord.ui.button(label="Start", style=discord.ButtonStyle.blurple)
     async def initB(self, interaction:discord.Interaction, button:discord.ui.Button):
         #call SetupModal on button press
         await interaction.response.send_modal(SetupModal())
 
-    
 
 
 intents = discord.Intents.default()
@@ -105,7 +105,9 @@ async def setupSeq(interaction:discord.Interaction):
     else:
         await interaction.response.send_message("You don't have the required permissions (administrator) to use the start_setup command",ephemeral=True)
 
-
+@tree.command(name="bind",description="Binds the printing of new tasks and tests to the current channel.")
+async def bindCha(interaction:discord.Interaction):
+    interaction.channel_id()
 
 # @tree.command()
 # @app_commands.describe(credentials="Credentials to change/input")
@@ -114,4 +116,4 @@ async def setupSeq(interaction:discord.Interaction):
 
 
 #enter bot key in this field
-client.run('')
+client.run('MTAxMjM5MzEyODY3OTk3Mjg4NA.GwEgkO.2ZiCutGbqee07KZnJkhB4a_ZYg9T8EDTZpcSu8')
