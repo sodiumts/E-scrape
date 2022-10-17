@@ -3,7 +3,109 @@ import requests
 from datetime import date, datetime,timedelta
 import bs4
 import random
-from datam import DBManager
+import sqlite3 as sql
+from os.path import exists
+from datetime import date
+
+
+class DBManager:
+    def __init__(self) -> None:
+        if exists("functions/classes.db") == False:
+            with sql.connect("functions/classes.db") as conn:
+                cur = conn.cursor()
+                LessonTable = """ CREATE TABLE "Lessons"(
+                    unique_id INTEGER,
+                    less_name TEXT,
+                    less_number INTEGER,
+                    assignments TEXT,
+                    time TEXT,
+                    date DATE,
+                    PRIMARY KEY(unique_id)
+                )
+                """
+                cur.execute(LessonTable)
+                TestTable = """ CREATE TABLE "Tests"(
+                    unique_id INTEGER,
+                    less_name TEXT,
+                    less_number INTEGER,
+                    time TEXT,
+                    date DATE,
+                    PRIMARY KEY(unique_id)
+                )
+                """
+                cur.execute(TestTable)
+
+                DescTable = """ CREATE TABLE "Descriptions"(
+                    unique_id INTEGER,
+                    less_name TEXT,
+                    less_number INTEGER,
+                    less_desc TEXT,
+                    time TEXT,
+                    date DATE,
+                    PRIMARY KEY(unique_id)
+                )
+                """
+                cur.execute(DescTable)
+
+                WholeTable = """ CREATE TABLE "Whole"()
+                    unique_id INTEGER,
+                    less_name TEXT,
+                    less_number INTEGER,
+                    less_desc TEXT,
+                    time TEXT,
+                    date DATE,
+                    PRIMARY KEY(unique_id)
+                """
+    
+    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:date) -> None:
+        with sql.connect("functions/classes.db") as conn:
+            curr = conn.cursor()
+            curr.execute("SELECT rowid FROM Lessons WHERE unique_id = ?", (unique_id,))
+            data = curr.fetchone()
+            if data == None:
+                tup = (unique_id,lesson_name,number,task,times,date)
+                exec = f""" INSERT INTO "Lessons"
+                (unique_id,less_name,less_number,assignments,time,date)
+                VALUES(
+                    ?,?,?,?,?,?
+                )"""
+                print("new data in Lessons at:",unique_id)
+                curr.execute(exec,tup)
+                return int(unique_id)
+            
+    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:date) -> None:
+        with sql.connect("functions/classes.db") as conn:
+            curr = conn.cursor()
+            curr.execute("SELECT rowid FROM Tests WHERE unique_id = ?", (unique_id,))
+            data = curr.fetchone()
+            if data == None:
+                tup = (unique_id,lesson_name,test_number,time,date)
+                exec = f""" INSERT INTO "Tests"
+                (unique_id,less_name,less_number,time,date)
+                VALUES(
+                    ?,?,?,?,?
+                )"""
+                print("new data in Tests at:",unique_id)
+                curr.execute(exec,tup)
+                return int(unique_id)
+
+
+    def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date:date) -> None:
+        with sql.connect("functions/classes.db") as conn:
+            curr = conn.cursor()
+            curr.execute("SELECT rowid FROM Descriptions WHERE unique_id = ?", (unique_id,))
+            data = curr.fetchone()
+            if data==None:
+                tup = (unique_id,lesson_name,less_number,lesson_desc,time,date)
+                exec = f""" INSERT INTO "Descriptions"
+                (unique_id,less_name,less_number,less_desc,time,date)
+                VALUES(
+                    ?,?,?,?,?,?
+                )"""
+                print("new data in Descriptions at:",unique_id)
+                curr.execute(exec,tup)
+                return int(unique_id)
+
 
 class Scraper:
     def __init__(self):
@@ -20,9 +122,8 @@ class Scraper:
                 "8.": ["14:10","14:50"],
                 "9.": ["15:00","15:40"],
                 "10.": ["15:50","16:30"]}
-        with open("details.json","r") as f:
+        with open("functions/details.json","r") as f:
             self.creds = json.load(f)
-    
     def get_main_page(self,weeks) -> list:
          #Open a requests session for retrieving data 
         with requests.Session() as s:
@@ -59,13 +160,13 @@ class Scraper:
             #parse the html page
             return pages
 
-    def scrape_homework(self,**kwargs) -> None:
+    def scrape_homework(self,**kwargs) -> list:
         if kwargs.get("preloaded",None):
             pages = kwargs.get("preloaded",None)
         else:
             weeks = kwargs.get("weeks",None)
             pages = self.get_main_page(weeks)
-
+        NewEntries = []
         for page in pages:
         #find all elements with the class "hometask"
             homework_entries = page.find_all(class_="hometask")
@@ -74,7 +175,16 @@ class Scraper:
                 #find all <p> elements
                 foundelements = entry.findChildren()
                 if foundelements:
-                    customIdSource = foundelements[0]["title"]
+                    # print(foundelements)
+                    try:
+                        customIdSource = foundelements[0]["title"]
+                    except:
+                        # print("EXCEPTION")
+                        if foundelements[0].findChildren("div",{"class":"home-task-answer-widget"}):
+                            customIdSource = foundelements[0].text.strip()
+
+                    
+
                     lessonNumberFound= entry.find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"number"})[0].text.strip()
                     lessonName = entry.find_previous_sibling("td",{"class":"first-column"}).findChildren("span",{"class":"title"})[0].text.strip()
                     tasks =[]
@@ -87,6 +197,7 @@ class Scraper:
                             taskDate = taskDate.replace(day,"")
                         except:
                             continue
+                    customIdSource = customIdSource + str(lessonNumberFound)
                     unique_seed=random.seed(a=customIdSource)
                     unique_id=random.randint(-2147483647,2147483647)
 
@@ -96,16 +207,20 @@ class Scraper:
                     timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
                     taskDateConv = datetime.strptime(taskDate.strip(),"%d.%m.%y.")
                     # print(taskDateConv)
-                    self.dataMan.insert_data_lessons(unique_id,lessonName,lessonNumberFound,mainTask,timeFormatted,taskDateConv)
-
-
-    def scrape_tests(self,**kwargs) -> None:
+                    news = self.dataMan.insert_data_lessons(unique_id,lessonName,lessonNumberFound,mainTask,timeFormatted,taskDateConv)
+                    if news != None:
+                        NewEntries.append(news)
+        if NewEntries:
+            return NewEntries
+        else:
+            return None
+    def scrape_tests(self,**kwargs) -> list:
         if kwargs.get("preloaded",None):
             pages = kwargs.get("preloaded",None)
         else:
             weeks = kwargs.get("weeks",None)
             pages = self.get_main_page(weeks)
-
+        NewEntries = []
         for page in pages:
             foundTest = page.find_all("span",{"class":"subject--scheduledTest"})
             # print(foundTest)
@@ -127,24 +242,85 @@ class Scraper:
                 timeFormatted = self.times[foundTestNumber]
                 timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
                 
-                self.dataMan.insert_data_test(unique_id,foundTestSubject,foundTestNumber,timeFormatted,testDateConv)
-            
+                news =self.dataMan.insert_data_test(unique_id,foundTestSubject,foundTestNumber,timeFormatted,testDateConv)
+                if news != None:
+                    NewEntries.append(news)
+        if NewEntries:
+            return NewEntries
+        else:
+            return None
 
-            # foundDesc = page.find_all("td",{"class":"subject"})
-            # for desc in foundDesc:
-            #     if desc.find_parent("tr").find_previous_sibling("tr") == None:
-            #         continue
-            #     print(desc)
-                # foundDescNumber = desc.find_previous_sibling("td").findChildren("span",{"class":"number"}).text.strip()
-                # foundDescTitle = desc.find_previous_sibling("td").findChildren("span",{"class":"title"}).text.strip()
-                # foundDescContent = desc.text.strip()
-            # print(foundTestSubject)
+    def scrape_descriptions(self,**kwargs) -> list:
+        if kwargs.get("preloaded",None):
+            pages = kwargs.get("preloaded",None)
+        else:
+            weeks = kwargs.get("weeks",None)
+            pages = self.get_main_page(weeks)
+        NewEntries = []
+        for page in pages:
+            instanceIfNoNumber = 0
+            foundDesc = page.find_all("td",{"class":"subject"})
+            for desc in foundDesc:
+                if desc.find_parent("tr").find_previous_sibling("tr") == None:
+                    continue
+                if desc.find_previous_sibling("td").findChildren("span",{"class":"number--lessonNotInDay"}):
+                    foundDescNumber = "After classes"
+                    instanceIfNoNumber+=1
+                    foundDescDate = desc.findParent("table",{"class":"lessons-table"}).find_previous_sibling("h2").text.strip()
+                    for day in self.days:
+                        try:
+                            foundDescDate = foundDescDate.replace(day,"")
+                        except:
+                            continue
+                    customidSource = str(foundDescNumber) + str(instanceIfNoNumber) + str(foundDescDate)
+                    unique_seed = random.seed(a=customidSource)
+                    unique_id = random.randint(-2147483647,2147483647)
+                    timeFormatted = "After classes"
+                    descDateConv = datetime.strptime(foundDescDate.strip(),"%d.%m.%y.")
 
-    def scrape_all(self,weeks)->None:
+                else:
+                    foundDescNumber = desc.find_previous_sibling("td").findChildren("span",{"class":"number"})[0].text.strip()
+                    foundDescDate = desc.findParent("table",{"class":"lessons-table"}).find_previous_sibling("h2").text.strip()
+                    customidSource = str(foundDescNumber) + str(foundDescDate)
+                    for day in self.days:
+                        try:
+                            foundDescDate = foundDescDate.replace(day,"")
+                        except:
+                            continue
+                    unique_seed = random.seed(a=customidSource)
+                    unique_id = random.randint(-2147483647,2147483647)
+                    timeFormatted = self.times[foundDescNumber]
+                    timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
+                    descDateConv = datetime.strptime(foundDescDate.strip(),"%d.%m.%y.")
+                    
+                
+                foundDescTitle = desc.find_previous_sibling("td").findChildren("span",{"class":"title"})[0].text.strip()
+                foundDescContent = desc.text.strip()
+                # print(unique_id,foundDescTitle,foundDescNumber,foundDescContent,timeFormatted,descDateConv)
+                news = self.dataMan.insert_data_descript(unique_id,foundDescTitle,foundDescNumber,foundDescContent,timeFormatted,descDateConv)
+                if news != None:
+                    NewEntries.append(news)
+        if NewEntries:
+            return NewEntries
+        else:
+            return None
+    
+    def scrape_all(self,weeks)->dict:
+        output = {
+            "NewHomework":[],
+            "NewTests":[],
+            "NewDescriptions":[],
+        }
         pages = self.get_main_page(weeks)
-        self.scrape_homework(preloaded=pages)
-        self.scrape_tests(preloaded=pages)
 
+        newHW = self.scrape_homework(preloaded=pages)
+        newTS = self.scrape_tests(preloaded=pages)
+        newDS = self.scrape_descriptions(preloaded=pages)
+
+        output["NewDescriptions"] = newDS
+        output["NewHomework"] = newHW
+        output["NewTests"] = newTS
+        return output
     def checkLoginData(self,username,password):
         creds = {
             "fake_pass":"",
@@ -161,5 +337,8 @@ class Scraper:
             #valid credentials
             return 0x200
 
-scrape = Scraper()
-scrape.scrape_all(2)
+
+
+# scrape = Scraper()
+# lists = scrape.scrape_all(2)
+# print(lists)

@@ -1,21 +1,33 @@
+from imaplib import Commands
 import discord
 from discord import ui, app_commands
-import functions.scrapefunc
+from discord.ext import tasks, commands
+from functions.scrapefunc import Scraper
 import json
-import functions.datam
-
+import asyncio
 #initiate the discord client class
+scraper = Scraper()
+
+@tasks.loop(seconds=2)
+async def printer():
+    newEntries = await scraper.scrape_all()
+    print(newEntries)
+    return newEntries
 class MyClient(discord.Client):
     def __init__(self,intents):
         super().__init__(intents=intents)
         self.synced = False 
-
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.synced:
             await tree.sync() #sync the commands to the server
             self.synced = True
         print(f'Logged on as {self.user}!')
+        printer.start()
+    async def on_message(self, message):
+        print(f'Message from {message.author}: {message.content}')
+
+
 
 ##################################### TESTING CLASSES ####################################
 class testButton(discord.ui.View):
@@ -41,7 +53,7 @@ class SetupModal(ui.Modal,title = "Setup"):
     
     async def on_submit(self, interaction: discord.Interaction):
         #send the input data to scrapefunc.py to verify if its valid
-        checkResponse = functions.scrapefunc.checkLoginData(self.userNameAnswer, self.userPassAnswer)
+        checkResponse = scraper.checkLoginData(self.userNameAnswer, self.userPassAnswer)
         
         #error for invalid creds
         if checkResponse == 0x1:
