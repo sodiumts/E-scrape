@@ -1,32 +1,72 @@
+from code import interact
 from imaplib import Commands
+from multiprocessing.connection import wait
 import discord
 from discord import ui, app_commands
 from discord.ext import tasks, commands
 from functions.scrapefunc import Scraper
 import json
 import asyncio
+from os.path import exists
 #initiate the discord client class
-scraper = Scraper()
-
-@tasks.loop(seconds=2)
-async def printer():
-    newEntries = await scraper.scrape_all()
-    print(newEntries)
-    return newEntries
+scrape = Scraper()
+# lists = scrape.scrape_all(2)
+# print(lists)
 class MyClient(discord.Client):
     def __init__(self,intents):
         super().__init__(intents=intents)
         self.synced = False 
+    
+    
+    
     async def on_ready(self):
         await self.wait_until_ready()
         if not self.synced:
             await tree.sync() #sync the commands to the server
             self.synced = True
         print(f'Logged on as {self.user}!')
-        printer.start()
+        self.bg_task = self.loop.create_task(self.scraping())
+        # printer.start()
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
 
+    # async def setup_hook(self) -> None:
+    #     self.bg_task = self.loop.create_task(self.scraping())
+    async def scraping(self):
+        # self.scr = self.loop.create_task(scrape.scrape_all(2))
+        await self.wait_until_ready()
+        boundid = None
+
+        if exists("channelid.txt"):
+            with open("channelid.txt") as f:
+                boundid = f.readline()
+        while not self.is_closed():
+            if boundid != None:
+                channel = self.get_channel(int(boundid))
+
+            if boundid != None:
+                response = scrape.scrape_all(2)
+                message = ""
+                print(response)
+                if response["NewDescriptions"] != None:
+                    message += f"New uniqueID in Descriptions: {response['NewDescriptions']}\n"
+                if response["NewHomework"] != None:
+                    message += f"New uniqueID in Homework: {response['NewHomework']}\n"
+                if response["NewTests"] != None:
+                    message += f"New uniqueID in Tests: {response['NewTests']}\n"
+                
+                if message == "":
+                    print("nothing new")
+                else:
+                    await channel.send(message)
+                
+                await asyncio.sleep(5)
+            else:
+                if exists("channelid.txt"):
+                    with open("channelid.txt") as f:
+                        boundid = f.readline()
+                print("none")
+                await asyncio.sleep(5)
 
 
 ##################################### TESTING CLASSES ####################################
@@ -53,7 +93,7 @@ class SetupModal(ui.Modal,title = "Setup"):
     
     async def on_submit(self, interaction: discord.Interaction):
         #send the input data to scrapefunc.py to verify if its valid
-        checkResponse = scraper.checkLoginData(self.userNameAnswer, self.userPassAnswer)
+        checkResponse = scrape.checkLoginData(self.userNameAnswer, self.userPassAnswer)
         
         #error for invalid creds
         if checkResponse == 0x1:
@@ -65,13 +105,15 @@ class SetupModal(ui.Modal,title = "Setup"):
             await interaction.response.send_message(embed=errEm,ephemeral=True)
         # valid credentials
         if checkResponse == 0x200:
-            await interaction.response.send_message(f"Valid",ephemeral=True)
+            await interaction.response.send_message(f"Please select a channel to send alerts about new Homework and lessons by running ***/bind*** in the desired channel",ephemeral=True)
             #write the valid credentials to details.json
             with open("details.json", "r") as f:
                 data = json.loads(f.read())
                 data['creds']['UserName'],data['creds']['Password'] = str(self.userNameAnswer),str(self.userPassAnswer)
             with open("details.json","w") as f:
                 f.write(json.dumps(data,indent=4))
+            
+            
 
 #define buttton class for setup
 class InitButton(discord.ui.View):
@@ -82,8 +124,6 @@ class InitButton(discord.ui.View):
     async def initB(self, interaction:discord.Interaction, button:discord.ui.Button):
         #call SetupModal on button press
         await interaction.response.send_modal(SetupModal())
-
-
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -119,8 +159,12 @@ async def setupSeq(interaction:discord.Interaction):
 
 @tree.command(name="bind",description="Binds the printing of new tasks and tests to the current channel.")
 async def bindCha(interaction:discord.Interaction):
-    interaction.channel_id()
-
+    if interaction.user.guild_permissions.administrator:
+        boundid = interaction.channel_id
+        with open("channelid.txt","w")as f:
+            f.write(str(boundid))
+        print(f"New bound channel at: {interaction.channel_id}")
+        await interaction.response.send_message(f"Bound channel <#{interaction.channel_id}> as the channel for new entries from tests and lessons.",ephemeral=True)
 # @tree.command()
 # @app_commands.describe(credentials="Credentials to change/input")
 # async def credential(interaction:discord.Interaction,credentials:typing.Literal["Username","Password"],input_credentials:str):

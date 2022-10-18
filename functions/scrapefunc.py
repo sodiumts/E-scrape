@@ -10,8 +10,8 @@ from datetime import date
 
 class DBManager:
     def __init__(self) -> None:
-        if exists("functions/classes.db") == False:
-            with sql.connect("functions/classes.db") as conn:
+        if exists("classes.db") == False:
+            with sql.connect("classes.db") as conn:
                 cur = conn.cursor()
                 LessonTable = """ CREATE TABLE "Lessons"(
                     unique_id INTEGER,
@@ -57,8 +57,8 @@ class DBManager:
                     PRIMARY KEY(unique_id)
                 """
     
-    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:date) -> None:
-        with sql.connect("functions/classes.db") as conn:
+    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:date) -> int:
+        with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Lessons WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
@@ -73,8 +73,8 @@ class DBManager:
                 curr.execute(exec,tup)
                 return int(unique_id)
             
-    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:date) -> None:
-        with sql.connect("functions/classes.db") as conn:
+    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:date) -> int:
+        with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Tests WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
@@ -90,8 +90,8 @@ class DBManager:
                 return int(unique_id)
 
 
-    def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date:date) -> None:
-        with sql.connect("functions/classes.db") as conn:
+    def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date:date) -> int:
+        with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Descriptions WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
@@ -106,7 +106,14 @@ class DBManager:
                 curr.execute(exec,tup)
                 return int(unique_id)
 
-
+    def get_info(self,unique_id:int,relT:str) -> tuple:
+        with sql.connect("classes.db") as conn:
+            curr = conn.cursor()
+            curr.execute(f"SELECT * FROM {relT} WHERE unique_id = ?", (unique_id,))
+            data = curr.fetchone()
+            print(data)
+            print(type(data))
+            return data    
 class Scraper:
     def __init__(self):
         self.dataMan = DBManager()
@@ -337,8 +344,6 @@ class Scraper:
             #valid credentials
             return 0x200
 
-
-
-# scrape = Scraper()
-# lists = scrape.scrape_all(2)
-# print(lists)
+    
+s = DBManager()
+s.get_info(1506239581,"Lessons")
