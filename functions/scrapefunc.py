@@ -19,7 +19,7 @@ class DBManager:
                     less_number INTEGER,
                     assignments TEXT,
                     time TEXT,
-                    date DATE,
+                    date TEXT,
                     PRIMARY KEY(unique_id)
                 )
                 """
@@ -29,7 +29,7 @@ class DBManager:
                     less_name TEXT,
                     less_number INTEGER,
                     time TEXT,
-                    date DATE,
+                    date TEXT,
                     PRIMARY KEY(unique_id)
                 )
                 """
@@ -41,7 +41,7 @@ class DBManager:
                     less_number INTEGER,
                     less_desc TEXT,
                     time TEXT,
-                    date DATE,
+                    date TEXT,
                     PRIMARY KEY(unique_id)
                 )
                 """
@@ -53,11 +53,11 @@ class DBManager:
                     less_number INTEGER,
                     less_desc TEXT,
                     time TEXT,
-                    date DATE,
+                    date TEXT,
                     PRIMARY KEY(unique_id)
                 """
     
-    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:date) -> int:
+    def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:str) -> int:
         with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Lessons WHERE unique_id = ?", (unique_id,))
@@ -73,7 +73,7 @@ class DBManager:
                 curr.execute(exec,tup)
                 return int(unique_id)
             
-    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:date) -> int:
+    def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:str) -> int:
         with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Tests WHERE unique_id = ?", (unique_id,))
@@ -90,7 +90,7 @@ class DBManager:
                 return int(unique_id)
 
 
-    def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date:date) -> int:
+    def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date:str) -> int:
         with sql.connect("classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Descriptions WHERE unique_id = ?", (unique_id,))
@@ -111,8 +111,8 @@ class DBManager:
             curr = conn.cursor()
             curr.execute(f"SELECT * FROM {relT} WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
-            print(data)
-            print(type(data))
+            # print(data)
+            # print(type(data))
             return data    
 class Scraper:
     def __init__(self):
@@ -213,6 +213,7 @@ class Scraper:
                     timeFormatted = self.times[lessonNumberFound]
                     timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
                     taskDateConv = datetime.strptime(taskDate.strip(),"%d.%m.%y.")
+                    taskDateConv = taskDateConv.strftime("%d.%m.%y.")
                     # print(taskDateConv)
                     news = self.dataMan.insert_data_lessons(unique_id,lessonName,lessonNumberFound,mainTask,timeFormatted,taskDateConv)
                     if news != None:
@@ -244,6 +245,7 @@ class Scraper:
                         except:
                             continue
                 testDateConv = datetime.strptime(foundTestDate.strip(),"%d.%m.%y.")
+                testDateConv = testDateConv.strftime("%d.%m.%y.")
                 unique_seed = random.seed(a=foundTestSubject+foundTestDate)
                 unique_id = random.randint(-2147483647,2147483647)
                 timeFormatted = self.times[foundTestNumber]
@@ -299,6 +301,7 @@ class Scraper:
                     timeFormatted = self.times[foundDescNumber]
                     timeFormatted = str(f"{timeFormatted[0]} - {timeFormatted[1]}")
                     descDateConv = datetime.strptime(foundDescDate.strip(),"%d.%m.%y.")
+                    descDateConv = descDateConv.strftime("%d.%m.%y.")
                     
                 
                 foundDescTitle = desc.find_previous_sibling("td").findChildren("span",{"class":"title"})[0].text.strip()

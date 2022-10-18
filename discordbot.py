@@ -1,15 +1,13 @@
-from code import interact
-from imaplib import Commands
-from multiprocessing.connection import wait
 import discord
 from discord import ui, app_commands
-from discord.ext import tasks, commands
-from functions.scrapefunc import Scraper
+from functions.scrapefunc import Scraper, DBManager
 import json
 import asyncio
 from os.path import exists
+from os import linesep
 #initiate the discord client class
 scrape = Scraper()
+dbstuff = DBManager()
 # lists = scrape.scrape_all(2)
 # print(lists)
 class MyClient(discord.Client):
@@ -49,16 +47,30 @@ class MyClient(discord.Client):
                 message = ""
                 print(response)
                 if response["NewDescriptions"] != None:
+                    # for id in response["NewDescriptions"]:
+                    #     descStuff = dbstuff.get_info(id,"Descriptions")
+                    #     messageDesc = f"{descStuff[5]},{str(descStuff[2])}. {descStuff[4]}  {descStuff[3]}, {descStuff[3]}"
+                    #     print(messageDesc)
                     message += f"New uniqueID in Descriptions: {response['NewDescriptions']}\n"
                 if response["NewHomework"] != None:
                     message += f"New uniqueID in Homework: {response['NewHomework']}\n"
-                if response["NewTests"] != None:
-                    message += f"New uniqueID in Tests: {response['NewTests']}\n"
+                    finalHWmsg = ""
+                    for id in response["NewHomework"]:
+                        homeworkStuff = dbstuff.get_info(id,"Lessons")
+                        homeworkFormatted = homeworkStuff[3]
+                        homeworkFormatted = linesep.join([s for s in homeworkFormatted.splitlines() if s])
+                        messageHW = f"{homeworkStuff[5]} {str(homeworkStuff[2])}. {homeworkStuff[4]}  ***{homeworkStuff[1]}:*** *{homeworkFormatted.strip()}*\n"
+                        finalHWmsg += messageHW
+                    await channel.send(finalHWmsg)
+                # if response["NewTests"] != None:
+                #     message += f"New uniqueID in Tests: {response['NewTests']}\n"
+                #     for id in response["NewTest"]:
+                #         testStuff = dbstuff.get_info(id,"Lessons")
+                #         messageTest = f"{testStuff[4]},{str(testStuff[2])}. {testStuff[3]}  {testStuff[1]}, Plānots kontroldarbs!"
+                #         print(messageTest)
                 
                 if message == "":
                     print("nothing new")
-                else:
-                    await channel.send(message)
                 
                 await asyncio.sleep(5)
             else:
