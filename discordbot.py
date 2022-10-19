@@ -1,3 +1,6 @@
+TOKEN = "" #Paste your discord bot token here
+
+
 import discord
 from discord import ui, app_commands
 from functions.scrapefunc import Scraper, DBManager
@@ -10,6 +13,12 @@ scrape = Scraper()
 dbstuff = DBManager()
 # lists = scrape.scrape_all(2)
 # print(lists)
+with open("functions/details.json", "r") as f:
+    firstCheck = json.load(f)
+if firstCheck["creds"]["UserName"] == "":
+    print("################################################################################################")
+    print("PLEASE START THE SETUP SEQUENCE BY TYPING THE /start_setup IN ANY CHANNEL!")
+    print("################################################################################################\n")
 class MyClient(discord.Client):
     def __init__(self,intents):
         super().__init__(intents=intents)
@@ -34,7 +43,6 @@ class MyClient(discord.Client):
         # self.scr = self.loop.create_task(scrape.scrape_all(2))
         await self.wait_until_ready()
         boundid = None
-
         if exists("channelid.txt"):
             with open("channelid.txt") as f:
                 boundid = f.readline()
@@ -45,13 +53,13 @@ class MyClient(discord.Client):
             if boundid != None:
                 response = scrape.scrape_all(2)
                 message = ""
-                print(response)
-                if response["NewDescriptions"] != None:
-                    # for id in response["NewDescriptions"]:
-                    #     descStuff = dbstuff.get_info(id,"Descriptions")
-                    #     messageDesc = f"{descStuff[5]},{str(descStuff[2])}. {descStuff[4]}  {descStuff[3]}, {descStuff[3]}"
-                    #     print(messageDesc)
-                    message += f"New uniqueID in Descriptions: {response['NewDescriptions']}\n"
+                # print(response)
+                # if response["NewDescriptions"] != None:
+                #     # for id in response["NewDescriptions"]:
+                #     #     descStuff = dbstuff.get_info(id,"Descriptions")
+                #     #     messageDesc = f"{descStuff[5]},{str(descStuff[2])}. {descStuff[4]}  {descStuff[3]}, {descStuff[3]}"
+                #     #     print(messageDesc)
+                #     message += f"New uniqueID in Descriptions: {response['NewDescriptions']}\n"
                 if response["NewHomework"] != None:
                     message += f"New uniqueID in Homework: {response['NewHomework']}\n"
                     finalHWmsg = ""
@@ -62,22 +70,21 @@ class MyClient(discord.Client):
                         messageHW = f"{homeworkStuff[5]} {str(homeworkStuff[2])}. {homeworkStuff[4]}  ***{homeworkStuff[1]}:*** *{homeworkFormatted.strip()}*\n"
                         finalHWmsg += messageHW
                     await channel.send(finalHWmsg)
-                # if response["NewTests"] != None:
-                #     message += f"New uniqueID in Tests: {response['NewTests']}\n"
-                #     for id in response["NewTest"]:
-                #         testStuff = dbstuff.get_info(id,"Lessons")
-                #         messageTest = f"{testStuff[4]},{str(testStuff[2])}. {testStuff[3]}  {testStuff[1]}, Plānots kontroldarbs!"
-                #         print(messageTest)
+                if response["NewTests"] != None:
+                    message += f"New uniqueID in Tests: {response['NewTests']}\n"
+                    finalTestMsg = ""
+                    for id in response["NewTest"]:
+                        testStuff = dbstuff.get_info(id,"Lessons")
+                        messageTest = f"{testStuff[4]} {str(testStuff[2])}. {testStuff[3]}  ***{testStuff[1]}:*** **Plānots kontroldarbs!**\n"
+                        finalTestMsg +=messageTest
+                    await channel.send(finalTestMsg)
                 
-                if message == "":
-                    print("nothing new")
-                
-                await asyncio.sleep(5)
+                await asyncio.sleep(600)
             else:
                 if exists("channelid.txt"):
                     with open("channelid.txt") as f:
                         boundid = f.readline()
-                print("none")
+                # print("none")
                 await asyncio.sleep(5)
 
 
@@ -119,10 +126,10 @@ class SetupModal(ui.Modal,title = "Setup"):
         if checkResponse == 0x200:
             await interaction.response.send_message(f"Please select a channel to send alerts about new Homework and lessons by running ***/bind*** in the desired channel",ephemeral=True)
             #write the valid credentials to details.json
-            with open("details.json", "r") as f:
+            with open("functions/details.json", "r") as f:
                 data = json.loads(f.read())
                 data['creds']['UserName'],data['creds']['Password'] = str(self.userNameAnswer),str(self.userPassAnswer)
-            with open("details.json","w") as f:
+            with open("functions/details.json","w") as f:
                 f.write(json.dumps(data,indent=4))
             
             
@@ -162,7 +169,7 @@ async def setupSeq(interaction:discord.Interaction):
     if interaction.user.guild_permissions.administrator:
         #define an embed for setup sequence
         embed = discord.Embed(title="Setup for E-scrape",description="Start the setup sequence for E-scrape by pressing the start button bellow.")
-        embed.set_author(name="E-scrape",url="https://github.com/sodiumts/E-scrape",icon_url="https://cdn.discordapp.com/attachments/1017501822342144256/1018860380178612244/icon.jpg")
+        embed.set_author(name="E-scrape",url="https://github.com/sodiumts/E-scrape")
         
         #send an embed with the InitButton 
         await interaction.response.send_message(embed=embed,view=InitButton(),ephemeral=True)
@@ -177,6 +184,15 @@ async def bindCha(interaction:discord.Interaction):
             f.write(str(boundid))
         print(f"New bound channel at: {interaction.channel_id}")
         await interaction.response.send_message(f"Bound channel <#{interaction.channel_id}> as the channel for new entries from tests and lessons.",ephemeral=True)
+@tree.command(name="less-descr",description="Makes a table with all the days in the week")
+async def imgGen(interaction:discord.Interaction, weeks_ammount:int):
+    await interaction.response.defer(ephemeral=True)
+    count = scrape.imageGen(weeks=2)
+    # await asyncio.sleep(5)
+    for each in count:
+        
+        await interaction.channel.send(file=discord.File(f"functions/{each}.png"))
+    await interaction.edit_original_response(content="done")
 # @tree.command()
 # @app_commands.describe(credentials="Credentials to change/input")
 # async def credential(interaction:discord.Interaction,credentials:typing.Literal["Username","Password"],input_credentials:str):
@@ -184,4 +200,4 @@ async def bindCha(interaction:discord.Interaction):
 
 
 #enter bot key in this field
-client.run('MTAxMjM5MzEyODY3OTk3Mjg4NA.GwEgkO.2ZiCutGbqee07KZnJkhB4a_ZYg9T8EDTZpcSu8')
+client.run(TOKEN)

@@ -6,12 +6,13 @@ import random
 import sqlite3 as sql
 from os.path import exists
 from datetime import date
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 class DBManager:
     def __init__(self) -> None:
-        if exists("classes.db") == False:
-            with sql.connect("classes.db") as conn:
+        if exists("functions/classes.db") == False:
+            with sql.connect("functions/classes.db") as conn:
                 cur = conn.cursor()
                 LessonTable = """ CREATE TABLE "Lessons"(
                     unique_id INTEGER,
@@ -58,7 +59,7 @@ class DBManager:
                 """
     
     def insert_data_lessons(self,unique_id:int,lesson_name:str,number:int,task:str,times:str,date:str) -> int:
-        with sql.connect("classes.db") as conn:
+        with sql.connect("functions/classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Lessons WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
@@ -74,7 +75,7 @@ class DBManager:
                 return int(unique_id)
             
     def insert_data_test(self,unique_id:int,lesson_name:str,test_number:int,time:str,date:str) -> int:
-        with sql.connect("classes.db") as conn:
+        with sql.connect("functions/classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Tests WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
@@ -91,7 +92,7 @@ class DBManager:
 
 
     def insert_data_descript(self,unique_id:int,lesson_name:str,less_number:int,lesson_desc:str,time:str,date:str) -> int:
-        with sql.connect("classes.db") as conn:
+        with sql.connect("functions/classes.db") as conn:
             curr = conn.cursor()
             curr.execute("SELECT rowid FROM Descriptions WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
@@ -107,7 +108,7 @@ class DBManager:
                 return int(unique_id)
 
     def get_info(self,unique_id:int,relT:str) -> tuple:
-        with sql.connect("classes.db") as conn:
+        with sql.connect("functions/classes.db") as conn:
             curr = conn.cursor()
             curr.execute(f"SELECT * FROM {relT} WHERE unique_id = ?", (unique_id,))
             data = curr.fetchone()
@@ -270,11 +271,13 @@ class Scraper:
             instanceIfNoNumber = 0
             foundDesc = page.find_all("td",{"class":"subject"})
             for desc in foundDesc:
-                if desc.find_parent("tr").find_previous_sibling("tr") == None:
+                print(desc)
+                if desc.find_parent("thead") != None:
                     continue
                 if desc.find_previous_sibling("td").findChildren("span",{"class":"number--lessonNotInDay"}):
                     foundDescNumber = "After classes"
                     instanceIfNoNumber+=1
+                    foundDescDate = desc.findParent("table",{"class":"lessons-table"}).find_previous_sibling("h2")
                     foundDescDate = desc.findParent("table",{"class":"lessons-table"}).find_previous_sibling("h2").text.strip()
                     for day in self.days:
                         try:
@@ -286,6 +289,7 @@ class Scraper:
                     unique_id = random.randint(-2147483647,2147483647)
                     timeFormatted = "After classes"
                     descDateConv = datetime.strptime(foundDescDate.strip(),"%d.%m.%y.")
+                    descDateConv = descDateConv.strftime("%d.%m.%y.")
 
                 else:
                     foundDescNumber = desc.find_previous_sibling("td").findChildren("span",{"class":"number"})[0].text.strip()
@@ -319,15 +323,15 @@ class Scraper:
         output = {
             "NewHomework":[],
             "NewTests":[],
-            "NewDescriptions":[],
+            # "NewDescriptions":[],
         }
         pages = self.get_main_page(weeks)
 
         newHW = self.scrape_homework(preloaded=pages)
         newTS = self.scrape_tests(preloaded=pages)
-        newDS = self.scrape_descriptions(preloaded=pages)
+        # newDS = self.scrape_descriptions(preloaded=pages)
 
-        output["NewDescriptions"] = newDS
+        # output["NewDescriptions"] = newDS
         output["NewHomework"] = newHW
         output["NewTests"] = newTS
         return output
@@ -347,6 +351,114 @@ class Scraper:
             #valid credentials
             return 0x200
 
-    
-s = DBManager()
-s.get_info(1506239581,"Lessons")
+    def imageGen(self,**kwargs):
+        allcounts = []
+        if kwargs.get("weeks",None):
+            weeks = kwargs.get("weeks",None)
+            self.scrape_descriptions(weeks=weeks)
+            # mainDate = datetime.now() + timedelta(days=7*weeks)
+            # startDate = datetime.now().strftime("%d.%m.%y.")
+            # endDateConv = mainDate.strftime("%d.%m.%y.")
+            with sql.connect("functions/classes.db") as conn:
+                curr = conn.cursor()
+                finalData = []
+                for day in range(7*weeks):
+                    mainDate = datetime.now() + timedelta(days=day)
+                    mainDateConv = mainDate.strftime("%d.%m.%y.")
+                    curr.execute(f"SELECT * FROM Descriptions WHERE date = ? ORDER BY less_number ASC",(mainDateConv,))
+                    finalData.append(curr.fetchall())
+                count = 0
+                for i in finalData:
+                    data = [
+                        ["Laiks","Stunda","Tēma"]
+                    ]
+                    # date = i[5]
+                    if i:
+                        for b in i:
+                            text = b[3].split()
+                            conv = ""
+                            wordCount = 0
+                            for word in text:
+                                conv += word + " "
+                                wordCount+=1
+                                if wordCount == 5:
+                                    conv += "\n"
+                                    wordCount = 0 
+                            data.append([str(b[2]),b[4],b[1],conv])
+                        print('\n')
+                    else:
+                        continue
+                    
+                    print(data)
+                    fig_background_color = 'gray'
+                    fig_border = 'gray'
+                    title_text = b[5]
+                    
+                    column_headers = data.pop(0)
+                    row_headers = [x.pop(0) for x in data]
+                    
+                    cell_text = []
+                    for row in data:
+                        cell_text.append(row)
+                    
+                    rcolors = plt.cm.BuPu(np.full(len(row_headers), 5))
+                    ccolors = plt.cm.BuPu(np.full(len(column_headers), 5))
+                    
+                    plt.figure(linewidth=2,
+                            edgecolor=fig_border,
+                            facecolor=fig_background_color,
+                            tight_layout={'pad':1},
+                            figsize=(8,14) 
+                            )
+                    
+                    the_table = plt.table(cellText=cell_text,
+                                        rowLabels=row_headers,
+                                        rowColours=rcolors,
+                                        rowLoc='left',
+                                        colColours=ccolors,
+                                        colLabels=column_headers,
+                                        loc='center')
+                    
+                    the_table.auto_set_font_size(False)
+                    the_table.set_fontsize(10)
+                    the_table.auto_set_column_width(col=[0,1,2,3,4,5])
+
+                    def set_pad_for_column(col, pad=0.1):
+                        cells = the_table.get_celld()
+                        column = [cell for cell in the_table.get_celld() if cell[1] == col]
+                        for cell in column:
+                            cells[cell].PAD = pad
+                    set_pad_for_column(col=2, pad=0.01)
+                    
+                    the_table.scale(2,8)
+                    # Hide axes
+                    ax = plt.gca()
+                    ax.get_xaxis().set_visible(False)
+                    ax.get_yaxis().set_visible(False)
+                    
+                    plt.box(on=None)
+                    
+                    plt.suptitle(title_text)
+                    
+                    plt.draw()
+                    
+                    fig = plt.gcf()
+                    plt.savefig(f'functions/{count}.png',
+                                bbox='tight',
+                                edgecolor=fig.get_edgecolor(),
+                                facecolor=fig.get_facecolor(),
+                                dpi=300
+                                )
+                                
+                            # print(finalData)
+                            # print(type(data))
+                            
+                    if kwargs.get("date",None):
+                        date = kwargs.get("date",None)
+                    allcounts.append(count)
+                    count +=1
+        return allcounts
+        
+
+# s = Scraper()
+# s.imageGen(weeks=2)
