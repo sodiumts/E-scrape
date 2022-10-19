@@ -19,7 +19,8 @@ Installation
 2. To install the required libraries do the following command in the terminal:
 .. code :: sh
     pip install discord.py requests bs4 sqlite3 numpy matplotlib
-3. Then set-up a discord bot and get its token by following the guide in * `PyNaCl <https://pypi.org/project/PyNaCl/>`__ site.
+3. Then set-up a discord bot and get its token by following the guide in 
+* `PyNaCl <https://pypi.org/project/PyNaCl/>`__
 4. Invite the bot to your server
 5. Paste the bot token in discord.py in the TOKEN variable.
 6. Run the discord.py file by using this command:
