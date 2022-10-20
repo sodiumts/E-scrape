@@ -34,5 +34,5 @@ python3 discordbot.py
 Other stuff
 -----------
 - **/bind** binds the channel that the command was executed in as the channel that receives the new homework and tests information.
-- **/start_setup** can be used again to change the [e-klase.com](https://www.e-klase.lv/) account credentials.
+- **/start_setup** can be used again to change the [e-klase](https://www.e-klase.lv/) account credentials.
 
