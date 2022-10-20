@@ -89,19 +89,19 @@ class MyClient(discord.Client):
 
 
 ##################################### TESTING CLASSES ####################################
-class testButton(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
-    @discord.ui.button(label="testing",style=discord.ButtonStyle.danger)
-    async def testing(self,interaction:discord.Interaction, button:discord.ui.Button):
-        await interaction.response.send_message("deez",ephemeral=True)
+# class testButton(discord.ui.View):
+#     def __init__(self):
+#         super().__init__(timeout=None)
+#     @discord.ui.button(label="testing",style=discord.ButtonStyle.danger)
+#     async def testing(self,interaction:discord.Interaction, button:discord.ui.Button):
+#         await interaction.response.send_message("deez",ephemeral=True)
 
-class ModalTest(ui.Modal,title = "Test modal"):
-    answer = ui.TextInput(label="TESTING",style= discord.TextStyle.short, placeholder="placeholder test",required=True)
-    async def on_submit(self, interaction: discord.Interaction):
-        embed = discord.Embed(title=self.title,description=f"{self.answer.label}\n{self.answer}")
-        embed.set_author(name = interaction.user,icon_url=interaction.user.avatar)
-        await interaction.response.send_message(embed=embed)
+# class ModalTest(ui.Modal,title = "Test modal"):
+#     answer = ui.TextInput(label="TESTING",style= discord.TextStyle.short, placeholder="placeholder test",required=True)
+#     async def on_submit(self, interaction: discord.Interaction):
+#         embed = discord.Embed(title=self.title,description=f"{self.answer.label}\n{self.answer}")
+#         embed.set_author(name = interaction.user,icon_url=interaction.user.avatar)
+#         await interaction.response.send_message(embed=embed)
 ##################################### TESTING CLASSES ####################################
 
 #defining the modal for the setup sequence
@@ -153,12 +153,12 @@ client = MyClient(intents=intents)
 tree = app_commands.CommandTree(client)
 
 ###################### TESTING COMMANDS ##########################
-@tree.command(name="modal",description="pull up a test modal")
-async def modal(interaction:discord.Interaction):
-    await interaction.response.send_modal(ModalTest())
-@tree.command(name="embed_button",description="sends a message with button")
-async def butoun(interaction:discord.Interaction):
-    await interaction.response.send_message(view=testButton())
+# @tree.command(name="modal",description="pull up a test modal")
+# async def modal(interaction:discord.Interaction):
+#     await interaction.response.send_modal(ModalTest())
+# @tree.command(name="embed_button",description="sends a message with button")
+# async def butoun(interaction:discord.Interaction):
+#     await interaction.response.send_message(view=testButton())
 ###################### TESTING COMMANDS ##########################
 
 #define the command for the setup sequence
