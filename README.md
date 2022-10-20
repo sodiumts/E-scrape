@@ -30,7 +30,9 @@ pip install discord.py requests bs4 sqlite3 numpy matplotlib
 python3 discordbot.py
 ```
 7. Start the setup sequence by using the /start_setup in any channel of your desired server
-~~~~~~~~~~~~~
-Other stuff
 
+Other stuff
+-----------
+- **/bind** binds the channel that the command was executed in as the channel that receives the new homework and tests information.
+- **/start_setup** can be used again to change the [e-klase.com](https://www.e-klase.lv/) account credentials.
 
