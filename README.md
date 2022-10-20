@@ -7,6 +7,7 @@ Key features
 
 - Get regular updates on homework
 - Get a visualized table of classes and their descriptions for the next weeks
+- Discord bot made with the new slash commands support
 
 Installation
 -------------
@@ -29,6 +30,7 @@ pip install discord.py requests bs4 sqlite3 numpy matplotlib
 python3 discordbot.py
 ```
 7. Start the setup sequence by using the /start_setup in any channel of your desired server
-
+~~~~~~~~~~~~~
+Other stuff
 
 
