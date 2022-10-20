@@ -78,7 +78,8 @@ class MyClient(discord.Client):
                         messageTest = f"{testStuff[4]} {str(testStuff[2])}. {testStuff[3]}  ***{testStuff[1]}:*** **Plānots kontroldarbs!**\n"
                         finalTestMsg +=messageTest
                     await channel.send(finalTestMsg)
-                
+                if message == "":
+                    print("No new data")
                 await asyncio.sleep(600)
             else:
                 if exists("channelid.txt"):
